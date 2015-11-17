@@ -7,57 +7,108 @@
     <script type="text/javascript" src="/canvasjs.min.js"></script>
     <script>
     $(function() {
-        //initial value of dataPoints
-        var dps = [
-            {label: "Humidity %", y: 38},
-            {label: "Temperature C", y: 27}
-        ];
+        // dataPoints
+        var humidity_dataPoints1 = [];
+        var temp_dataPoints2 = [];
 
         var chart = new CanvasJS.Chart("chartContainer",{
-            title: { text: "Humidity and Temperature" },
-            axisY: { suffix: " " },
-            legend :{
-                verticalAlign: 'bottom',
-                horizontalAlign: "center"
+            zoomEnabled: true,
+            title: {
+                text: "Humidity and Temperature"
             },
-            data: [
+            toolTip: {
+                shared: true
+            },
+            legend: {
+                verticalAlign: "top",
+                horizontalAlign: "center",
+                fontSize: 20,
+                fontWeight: "bold",
+                fontFamily: "helvetica",
+                fontColor: "dimGrey"
+            },
+            /*axisX: {
+                title: "chart updates every 3 secs"
+            },*/
+            axisY:{
+                prefix: '',
+                includeZero: false
+            },
+            data: [{
+                // dataSeries1
+                type: "line",
+                //xValueType: "dateTime",
+                showInLegend: true,
+                name: "Humidity",
+                labelFontColor: "white",
+                dataPoints: humidity_dataPoints1
+            },
             {
-                type: "column",
-                bevelEnabled: true,
-                indexLabel: "{y}",
-                indexLabelFontSize: 26,
-                indexLabelFontColor: "#000000",
-                dataPoints: dps
-            }]
+                // dataSeries2
+                type: "line",
+                //xValueType: "dateTime",
+                showInLegend: true,
+                name: "Temperature",
+                labelFontColor: "white",
+                dataPoints: temp_dataPoints2
+            }],
+          legend:{
+            cursor:"pointer",
+            itemclick : function(e) {
+              if (typeof(e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+                e.dataSeries.visible = false;
+              }
+              else {
+                e.dataSeries.visible = true;
+              }
+              chart.render();
+            }
+          }
         });
 
-        var updateChart = function (hum, temp) {
-            // color of dataPoint dependent upon y value.
-            humidity_color =
-                hum > 48 ? "#FF2500":
-                hum >= 44 ? "#FF6000":
-                hum < 40 ? "#6B8E23 ":
-                null;
-            temp_color =
-                temp > 29 ? "#FF2500":
-                temp >= 28 ? "#FF6000":
-                temp < 27 ? "#6B8E23 ":
-                null;
+        var updateInterval = 2000;
+        var time = new Date;
+        time.setHours(9);
+        time.setMinutes(30);
+        time.setSeconds(00);
+        time.setMilliseconds(00);
 
-            dps[0] = {label: "Humidity %", y: hum, color: humidity_color};
-            dps[1] = {label: "Temperature C", y: temp, color: temp_color};
+        var count = 0;
+        var updateChart = function (humidity, temperature) {
+            temperature = (temperature * 9/5) + 32;
+
+            time.setTime(time.getTime()+ updateInterval);
+            if (count > 100) {
+                humidity_dataPoints1.shift();
+                temp_dataPoints2.shift();
+            }
+
+            humidity_dataPoints1.push({
+                x: count,
+                y: humidity
+            });
+            temp_dataPoints2.push({
+                x: count,
+                y: temperature
+            });
+
+            // updating legend text with  updated with y Value
+            chart.options.data[0].legendText = "Humidity - " + humidity + " %";
+            chart.options.data[1].legendText = "Temperature - " + temperature + " F";
+
             chart.render();
+            count++;
         };
 
         var socket = io('http://localhost:9080');
         var prevous_data = { humidity: 0, temperature: 0 }
         socket.on('sensor_data', function (data) {
             data = JSON.parse(data);
-            /* only update if the data changes */
-            if (prevous_data.humidity != data.humidity || prevous_data.temperature != data.temperature) {
-                console.log('updating chart');
-                updateChart(data.humidity, data.temperature);
-            }
+            // only update if the data changes 
+            //if (prevous_data.humidity != data.humidity || prevous_data.temperature != data.temperature) {
+            //console.log('updating chart');
+            updateChart(data.humidity, data.temperature);
+            //}
             prevous_data = data;
         });
     });
