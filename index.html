@@ -9,51 +9,56 @@
     $(function() {
         //initial value of dataPoints
         var dps = [
-            {label: "humidity", y: 38},
-            {label: "temperature", y: 27}
+            {label: "Humidity %", y: 38},
+            {label: "Temperature C", y: 27}
         ];
+
         var chart = new CanvasJS.Chart("chartContainer",{
             title: { text: "Humidity and Temperature" },
-            axisY: { suffix: " C" },
+            axisY: { suffix: " " },
             legend :{
                 verticalAlign: 'bottom',
                 horizontalAlign: "center"
             },
-            data: [{
+            data: [
+            {
                 type: "column",
                 bevelEnabled: true,
-                indexLabel: "{y} C",
+                indexLabel: "{y}",
+                indexLabelFontSize: 26,
+                indexLabelFontColor: "#000000",
                 dataPoints: dps
             }]
         });
 
         var updateChart = function (hum, temp) {
             // color of dataPoint dependent upon y value.
-            hum_boilerColor =
-                hum > 39 ? "#FF2500":
-                hum >= 38 ? "#FF6000":
-                hum < 37 ? "#6B8E23 ":
+            humidity_color =
+                hum > 48 ? "#FF2500":
+                hum >= 44 ? "#FF6000":
+                hum < 40 ? "#6B8E23 ":
                 null;
-            temp_boilerColor =
+            temp_color =
                 temp > 29 ? "#FF2500":
                 temp >= 28 ? "#FF6000":
                 temp < 27 ? "#6B8E23 ":
                 null;
 
-            dps[0] = {label: "humidity", y: hum, color: hum_boilerColor};
-            dps[1] = {label: "temperature", y: temp, color: temp_boilerColor};
+            dps[0] = {label: "Humidity %", y: hum, color: humidity_color};
+            dps[1] = {label: "Temperature C", y: temp, color: temp_color};
             chart.render();
         };
 
-        var socket = io('http://localhost:8080');
-        var count = 0;
+        var socket = io('http://localhost:9080');
+        var prevous_data = { humidity: 0, temperature: 0 }
         socket.on('sensor_data', function (data) {
             data = JSON.parse(data);
-            if (count >= 4) {
+            /* only update if the data changes */
+            if (prevous_data.humidity != data.humidity || prevous_data.temperature != data.temperature) {
+                console.log('updating chart');
                 updateChart(data.humidity, data.temperature);
-                count = 0;
             }
-            count++;
+            prevous_data = data;
         });
     });
     </script>

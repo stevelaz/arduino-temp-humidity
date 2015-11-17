@@ -36,6 +36,7 @@ serial.open(function(error) {
 });
 
 app.use(express.static('public'));
+app.use(express.static('node_modules'));
 app.get('/', function (req, res) {
   fs.readFile(__dirname + '/index.html',
   function (err, data) {
@@ -49,9 +50,9 @@ app.get('/', function (req, res) {
   });
 });
 
-var server = app.listen(8080, function () {
-  var host = server.address().address;
-  var port = server.address().port;
-  console.log('Listening at http://%s:%s', host, port);
-});
+var server = require('http').createServer(app);
 var io = require('socket.io')(server);
+io.on('connection', function() {
+    console.log('got connection');
+});
+server.listen(9080);
