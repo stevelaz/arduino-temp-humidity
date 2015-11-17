@@ -37,9 +37,7 @@ serial.open(function(error) {
 
 app.use(express.static('public'));
 app.get('/', function (req, res) {
-  //res.send('Hello World!');
-  //fs.readFile(__dirname + '/index.html',
-  fs.readFile(__dirname + '/index_new.html',
+  fs.readFile(__dirname + '/index.html',
   function (err, data) {
     if (err) {
       res.writeHead(500);
