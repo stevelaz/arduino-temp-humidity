@@ -27,9 +27,6 @@
                 fontFamily: "helvetica",
                 fontColor: "dimGrey"
             },
-            /*axisX: {
-                title: "chart updates every 3 secs"
-            },*/
             axisY:{
                 prefix: '',
                 includeZero: false
@@ -78,7 +75,7 @@
             temperature = (temperature * 9/5) + 32;
 
             time.setTime(time.getTime()+ updateInterval);
-            if (count > 100) {
+            if (count > 150) {
                 humidity_dataPoints1.shift();
                 temp_dataPoints2.shift();
             }
